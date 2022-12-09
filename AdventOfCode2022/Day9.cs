@@ -9,20 +9,20 @@ namespace AdventOfCode2022
     public class Day9
     {
         private List<string> _data;
-
         //Used tuple instead of object as easier to check value equality
         private HashSet<(int, int)> _visited;
-        //private Dictionary<string,int> directionValues = new(){{"U",-1},{"D",+1},{"L",-1},{"R",+1}};
 
         private class Coordinate
         {
             public int X;
             public int Y;
+            public string Name;
 
-            public Coordinate(int x, int y)
+            public Coordinate(int x, int y, string name = "")
             {
                 X = x;
                 Y = y;
+                Name = name;
             }
         }
 
@@ -48,6 +48,7 @@ namespace AdventOfCode2022
             }
 
             Console.WriteLine(_visited.Count);
+            Assert.That(_visited.Count, Is.EqualTo(6018));
         }
 
         private void Move(string move, Coordinate headCoordinate, Coordinate tailCoordinate)
@@ -60,6 +61,7 @@ namespace AdventOfCode2022
             {
                 MoveHead(direction, headCoordinate);
                 MoveTail(headCoordinate, tailCoordinate);
+                _visited.Add((tailCoordinate.X, tailCoordinate.Y));
             }
         }
 
@@ -72,10 +74,8 @@ namespace AdventOfCode2022
             if (Math.Abs(xDiff) <= 1 && Math.Abs(yDiff) <= 1)
             {
                 //Nothing to update
-                // Console.WriteLine("No tail movement");
                 return;
             }
-            // Console.WriteLine("Tail movement");
 
             if (Math.Abs(xDiff) > 1)
             {
@@ -96,8 +96,6 @@ namespace AdventOfCode2022
                     tailCoordinate.X += Math.Sign(xDiff);
                 }
             }
-
-            _visited.Add((tailCoordinate.X, tailCoordinate.Y));
         }
 
         private void MoveHead(string direction, Coordinate headCoordinate)
@@ -129,18 +127,20 @@ namespace AdventOfCode2022
             var snake = new List<Coordinate>();
             var snakeLength = 10;
 
-            for (int i = 0; i < snakeLength; i++)
-            {
-                snake.Add(new Coordinate(0, 0));
-            }
+            snake.Add(new Coordinate(0, 0, "H"));
 
+            for (int i = 1; i < snakeLength; i++)
+            {
+                snake.Add(new Coordinate(0, 0, i.ToString()));
+            }
 
             foreach (var move in _data)
             {
-                MoveLongTail(move,snake);
+                MoveLongTail(move, snake);
             }
 
             Console.WriteLine(_visited.Count);
+            Assert.That(_visited.Count, Is.EqualTo(2619));
         }
 
 
@@ -154,31 +154,40 @@ namespace AdventOfCode2022
             for (int i = 0; i < distance; i++)
             {
                 MoveHead(direction, snake.First());
-                MoveTail(snake.First(), snake[1]);
 
-                for (int j = 1; j < snake.Count-1; j++)
+                for (int j = 0; j < snake.Count - 1; j++)
                 {
-                    snake[j + 1].X = snake[j].X;
-                    snake[j + 1].Y = snake[j].Y;
+                    MoveTail(snake[j], snake[j + 1]);
+                    if (j == snake.Count - 2)
+                    {
+                        _visited.Add((snake.Last().X, snake.Last().Y));
+                    }
                 }
-
-                _visited.Add((snake.Last().X, snake.Last().Y));
             }
         }
 
-
         private void Print(List<Coordinate> snake)
         {
-            for (int x = 0; x < 40; x++)
+            for (int y = -8; y < 16; y++)
             {
-                for (int y = 0; y < 40; y++)
+                var row = "";
+                for (int x = -20; x < 20; x++)
                 {
-                    // if (snake.Contains(()))
-                    // {
-                    //
-                    // }
+                    var matches = _visited.Contains((x, y));
+                    if (matches)
+                    {
+                        row += "#";
+                    }
+                    else
+                    {
+                        row += ".";
+                    }
                 }
+
+                Console.WriteLine(row);
             }
+
+            Console.WriteLine();
         }
     }
 }
